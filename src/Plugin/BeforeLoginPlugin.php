@@ -51,13 +51,13 @@ class BeforeLoginPlugin
                 $customerLogin = $customerAccountLoginController->getRequest()->getParams('login');
                 $userEmail = $customerLogin['login']['username'];
 
-                if (!$this->verificaSeExisteEmailRespFinanceiro($userEmail)) {
-                    throw new LocalizedException(__("Login Não autorizado"));
-                }
+//                if (!$this->verificaSeExisteEmailRespFinanceiro($userEmail)) {
+//                    throw new LocalizedException(__("Login Não autorizado"));
+//                }
 
-                if(!$this->verificaSeExisteEmailRespLegal($userEmail)) {
-                    throw new LocalizedException(__("Login Não autorizado"));
-                }
+//                if(!$this->verificaSeExisteEmailRespLegal($userEmail)) {
+//                    throw new LocalizedException(__("Login Não autorizado"));
+//                }
 
             } catch (LocalizedException $e) {
                 $this->session->logout();
