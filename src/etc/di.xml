@@ -17,6 +17,16 @@
             <argument name="defaultTargetUrl" xsi:type="string">/</argument>
         </arguments>
     </type>
+
+    <type name="Magento\Customer\Controller\Account\CreatePost">
+        <plugin name="before_execute_create_account" type="Bleez\CentralAlunoLogin\Plugin\BeforeRegisterPlugin" sortOrder="1" disabled="false" />
+    </type>
+    <type name="Bleez\CentralAlunoLogin\Plugin\BeforeRegisterPlugin">
+        <arguments>
+            <argument name="defaultTargetUrl" xsi:type="string">/</argument>
+        </arguments>
+    </type>
+
     <!-- End Plugin -->
 
 </config>
