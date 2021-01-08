@@ -4,6 +4,7 @@ namespace Bleez\CentralAlunoLogin\Plugin;
 
 use Magento\Framework\UrlFactory;
 use Magento\Framework\Message\ManagerInterface;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Controller\Result\RedirectFactory;
 use Bleez\CentralAlunoLogin\Model\CentralAlunoLoginFactory;
 
@@ -13,6 +14,8 @@ use Bleez\CentralAlunoLogin\Model\CentralAlunoLoginFactory;
  */
 class BeforeRegisterPlugin
 {
+    const INTEGRACAO_ATIVA = 'customer/configurations/enable_integration';
+    
     /** @var \Magento\Framework\UrlInterface */
     protected $urlModel;
 
@@ -22,6 +25,9 @@ class BeforeRegisterPlugin
     /** * @var \Magento\Framework\Message\ManagerInterface */
     protected $messageManager;
 
+    /** @var ScopeConfigInterface */
+    protected $scopeConfig;
+
     /** @var CentralAlunoLoginFactory */
     protected $centralAlunoLoginFactory;
 
@@ -30,16 +36,19 @@ class BeforeRegisterPlugin
      * @param UrlFactory $urlFactory
      * @param RedirectFactory $redirectFactory
      * @param ManagerInterface $messageManager
+     * @param ScopeConfigInterface $scopeConfig
      * @param CentralAlunoLoginFactory $centralAlunoLoginFactory
      */
     public function __construct(
         UrlFactory $urlFactory,
         RedirectFactory $redirectFactory,
         ManagerInterface $messageManager,
+        ScopeConfigInterface $scopeConfig,
         CentralAlunoLoginFactory $centralAlunoLoginFactory
     )
     {
         $this->urlModel = $urlFactory->create();
+        $this->scopeConfig = $scopeConfig;
         $this->messageManager = $messageManager;
         $this->resultRedirectFactory = $redirectFactory;
         $this->centralAlunoLoginFactory = $centralAlunoLoginFactory;
@@ -54,22 +63,32 @@ class BeforeRegisterPlugin
         \Magento\Customer\Controller\Account\CreatePost $subject,
         \Closure $proceed
     ) {
-        $cpf = $subject->getRequest()->getParam('taxvat');
+        if ($this->getIntegracaoAtiva()) {
+            $cpf = $subject->getRequest()->getParam('taxvat');
 
-        $buscarResp = $this->buscarResp($cpf);
+            $buscarResp = $this->buscarResp($cpf);
 
-        if(!$buscarResp) {
-            $this->messageManager->addErrorMessage(
-                'CPF Não Cadastrado em Nosso Sistema'
-            );
-            $defaultUrl = $this->urlModel->getUrl('*/*/create', ['_secure' => true]);
-            /** @var \Magento\Framework\Controller\Result\Redirect $resultRedirect */
-            $resultRedirect = $this->resultRedirectFactory->create();
+            if(!$buscarResp) {
+                $this->messageManager->addErrorMessage(
+                    'CPF Não Cadastrado em Nosso Sistema'
+                );
+                $defaultUrl = $this->urlModel->getUrl('*/*/create', ['_secure' => true]);
+                /** @var \Magento\Framework\Controller\Result\Redirect $resultRedirect */
+                $resultRedirect = $this->resultRedirectFactory->create();
 
-            return $resultRedirect->setUrl($defaultUrl);
+                return $resultRedirect->setUrl($defaultUrl);
+            }
         }
 
         return $proceed();
+    }
+
+    /**
+     * @return mixed
+     */
+    private function getIntegracaoAtiva()
+    {
+        return $this->scopeConfig->getValue(self::INTEGRACAO_ATIVA);
     }
 
     /**
